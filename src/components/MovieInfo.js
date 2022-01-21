@@ -1,35 +1,44 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { MoviesContext } from '../context/MoviesContext';
-import charactersData from './charactersData';
+import sortArray from '../helpers/sortArray';
 
 const MovieInfo = ({movieTitle}) => {
-  const { movieList, setMovieList } = useContext(MoviesContext);
-
-  console.log('movieList in MovieInfo');
-  console.log(movieList);
-
+  const { movieList, characters, setCharacters } = useContext(MoviesContext);
+  
   const currentMovie = movieList.filter(movie => movie.title === movieTitle);
+  
+  const [currentCharacters, setCurrentCharacters] = useState([]);
 
   const filterCharacters = () => {
-    const allCharacters = charactersData;
+    const allCharacters = characters;
     const characterURLs = currentMovie[0].characters;
-    console.log('allCharacters');
-    console.log(allCharacters);
-    console.log(characterURLs);
+    
+    const current = [];
 
-    const currentCharacters = characterURLs.map(url => {
-      return allCharacters.find(character => character.url === url);
+    allCharacters.forEach(char => {
+      characterURLs.forEach(url => {
+        if (char.url === url) {
+          current.push(char);
+        }
+      });
     });
-
-    console.log(currentCharacters);
-    return currentCharacters;
+    
+    setCurrentCharacters(current);
   }
-
-  const currentCharacters = filterCharacters();
+  
+  useEffect(() => {
+    async function resolveChars() {
+      let sorted = await sortArray(characters);
+      setCharacters(sorted);
+    }
+    resolveChars();
+    filterCharacters(characters)
+  }, []);
 
   return (
     <>
-      {currentCharacters.map(character => <p>{character.name}</p>)}
+      <hr />
+      {currentCharacters.map(character => <p key={character.url}>{character.name}</p>)}
     </>
   );
 }
